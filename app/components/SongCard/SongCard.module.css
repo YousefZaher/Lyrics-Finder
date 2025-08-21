@@ -1,0 +1,78 @@
+.card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4338ca;
+}
+
+.artist {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+
+
+.lyricsTitle {
+  margin-top: 1rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.lyrics {
+  display: block;
+  color: #111827;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  background: #f9fafb;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  white-space: pre-wrap;
+  max-height: 250px;
+  overflow-y: auto;
+  unicode-bidi: isolate;
+}
+
+.image {
+  width: 12rem;
+  border-radius: 8px;
+  margin-right: 1rem; /* بدل ما يكون margin فوق وتحت */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.mediaRow {
+  display: flex;
+  align-items: center; /* يخلي الاوديو والصورة في نفس السنتر */
+  margin: 0.75rem 0;
+}
+
+.audio {
+  flex: 1; /* يخلي الأوديو ياخذ المتاح */
+  margin-left: 0.5rem;
+}
+
+.loaderWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Add margin to create space below the "Lyrics" title */
+  margin-top: 1rem; 
+}
