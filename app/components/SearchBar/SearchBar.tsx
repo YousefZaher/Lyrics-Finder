@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image"; // Import the Image component
 import styles from "./SearchBar.module.css";
 
 interface Song {
   id: string;
   title: string;
   artist: string;
-  image?: string; // This can be undefined
+  image?: string;
   previewUrl?: string;
 }
 
@@ -29,8 +28,7 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
 
     const timeout = setTimeout(async () => {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      // Explicitly type the data to resolve the "Unexpected any" error
-      const data: Song[] = await res.json();
+      const data = await res.json();
       setSuggestions(data);
     }, 300);
 
@@ -61,17 +59,7 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
                 inputRef.current?.blur();
               }}
             >
-              {/* Use the Next.js Image component instead of <img> */}
-              {s.image && (
-                <Image 
-                  src={s.image} 
-                  alt={s.title} 
-                  className={styles.songImage} 
-                  width={64} // Specify a default width
-                  height={64} // Specify a default height
-                  priority // Use priority to preload the image
-                />
-              )}
+              <img src={s.image} alt={s.title} className={styles.songImage} />
               <div>
                 <span className={styles.songTitle}>{s.title}</span>
                 <span className={styles.songArtist}>{s.artist}</span>
