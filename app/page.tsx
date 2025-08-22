@@ -1,31 +1,36 @@
 "use client";
 
 import styles from './page.module.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import SearchBar from "./components/SearchBar/SearchBar";
 import SongCard from "./components/SongCard/SongCard";
 import PlaceholderCard from "./components/PlaceholderCard/PlaceholderCard";
 
+// Define the Song interface to match the data structure
 interface Song {
+  id: string;
   title: string;
   artist: string;
-  image: string;
+  image?: string;
+  previewUrl?: string;
 }
 
 export default function Home() {
-  const [selectedSong, setSelectedSong] = useState<any>(null);
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  // Correct the type of selectedSong to be either Song or null
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null | undefined>(null);
   const [hasBackground, setHasBackground] = useState(false);
   const [popularSongs, setPopularSongs] = useState<Song[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchPopularSongs = async () => {
       try {
         const res = await fetch("/api/popular-songs");
         const data = await res.json();
-        if (data.tracks) {
-          setPopularSongs(data.tracks);
+        // Check if data is an array of songs before setting the state
+        if (Array.isArray(data)) {
+          setPopularSongs(data);
         }
       } catch (error) {
         console.error("Failed to fetch popular songs:", error);
@@ -33,22 +38,21 @@ export default function Home() {
     };
     fetchPopularSongs();
   }, []); 
-    useEffect(() => {
-        if (selectedSong && selectedSong.image) {
+
+  useEffect(() => {
+    if (selectedSong && selectedSong.image) {
       setBackgroundImage(selectedSong.image);
       setHasBackground(true);
       return;
     }
 
-        if (popularSongs.length > 0) {
-      setBackgroundImage(popularSongs[currentImageIndex].image);
+    if (popularSongs.length > 0) {
+      const imageUrl = popularSongs[currentImageIndex].image;
+      setBackgroundImage(imageUrl || null);
       setHasBackground(true);
-
-      const intervalId = setInterval(() => {
-        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % popularSongs.length);
-      }, 5000); 
-            return () => clearInterval(intervalId);
+      
     }
+
   }, [selectedSong, popularSongs, currentImageIndex]);
 
   return (

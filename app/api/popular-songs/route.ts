@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
-  const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+  const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID as string;
+  const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET as string;
 
   if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
     return NextResponse.json(
