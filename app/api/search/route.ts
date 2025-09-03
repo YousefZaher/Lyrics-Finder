@@ -64,7 +64,7 @@ export async function GET(req: Request) {
         return {
           id: track.id,
           title: track.name,
-          artist: track.artists.map((a: SpotifyApi.ArtistObjectSimplified) => a.name).join(", "),
+          artist: track.artists.map((a: SpotifyApi.SimplifiedArtist) => a.name).join(", "),
           album: track.album.name,
           previewUrl,
           image,
