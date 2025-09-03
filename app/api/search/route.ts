@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import  SpotifyApi  from "spotify-types"
+import SpotifyApi from "spotify-types";
 
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search";
 const ITUNES_SEARCH_URL = "https://itunes.apple.com/search";
+const GENIUS_LYRICS_URL = "http://googleusercontent.com/lyrics-route.ts";
 
 async function getAccessToken() {
   const res = await fetch(SPOTIFY_TOKEN_URL, {
@@ -44,11 +45,30 @@ export async function GET(req: Request) {
       data.tracks.items.map(async (track: SpotifyApi.Track) => {
         let previewUrl = track.preview_url;
         let image = track.album.images[0]?.url;
+        let geniusUrl = null;
 
+        // Fetch Genius URL in parallel
+        try {
+          const geniusRes = await fetch(
+            `${GENIUS_LYRICS_URL}?artist=${encodeURIComponent(
+              track.artists[0].name
+            )}&title=${encodeURIComponent(track.name)}`
+          );
+          const geniusData = await geniusRes.json();
+          if (geniusData.url) {
+            geniusUrl = geniusData.url;
+          }
+        } catch (err) {
+          console.error("Genius URL fetch error", err);
+        }
+
+        // Fallback to iTunes if needed
         if (!previewUrl || !image) {
           try {
             const itunes = await fetch(
-              `${ITUNES_SEARCH_URL}?term=${encodeURIComponent(track.name + " " + track.artists[0].name)}&entity=song&limit=1`
+              `${ITUNES_SEARCH_URL}?term=${encodeURIComponent(
+                track.name + " " + track.artists[0].name
+              )}&entity=song&limit=1`
             );
             const itunesData = await itunes.json();
 
@@ -64,16 +84,20 @@ export async function GET(req: Request) {
         return {
           id: track.id,
           title: track.name,
-          artist: track.artists.map((a: SpotifyApi.SimplifiedArtist) => a.name).join(", "),
+          artist: track.artists
+            .map((a: SpotifyApi.SimplifiedArtist) => a.name)
+            .join(", "),
           album: track.album.name,
           previewUrl,
           image,
+          geniusUrl,
         };
       })
     );
 
     return NextResponse.json(results);
   } catch (err) {
+    console.error("Search API error:", err);
     return NextResponse.json({ error: "Spotify error" }, { status: 500 });
   }
 }

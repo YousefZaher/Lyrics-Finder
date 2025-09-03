@@ -9,6 +9,7 @@ interface Song {
   artist: string;
   image?: string;
   previewUrl?: string;
+  geniusUrl?: string; // ✅ Added to support Genius links
 }
 
 interface SearchBarProps {
@@ -27,9 +28,20 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
     }
 
     const timeout = setTimeout(async () => {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      setSuggestions(data);
+      try { // ✅ Added a try-catch block for better error handling
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        // Check if data is an array before setting suggestions
+        if (Array.isArray(data)) {
+          setSuggestions(data);
+        } else {
+          setSuggestions([]);
+          console.error("Received non-array data from search API:", data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch search results:", err);
+        setSuggestions([]);
+      }
     }, 300);
 
     return () => clearTimeout(timeout);

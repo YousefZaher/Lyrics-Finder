@@ -3,21 +3,12 @@
 import { FadeLoader } from "react-spinners";
 import { useEffect, useState, useRef } from "react";
 import styles from "./SongCard.module.css";
+import { Song } from "../../page";
 
 interface TimedLyric {
   time: number;
   line: string;
 }
-
-interface Song {
-  id: string;
-  title: string;
-  artist: string;
-  image?: string;
-  previewUrl?: string;
-  geniusUrl?: string;
-}
-
 
 export default function SongCard({ song }: { song: Song }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,6 +16,7 @@ export default function SongCard({ song }: { song: Song }) {
   const [timedLyrics, setTimedLyrics] = useState<TimedLyric[] | null>(null);
   const [currentLine, setCurrentLine] = useState<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Reset audio & lyrics when song changes
   useEffect(() => {
@@ -34,6 +26,7 @@ export default function SongCard({ song }: { song: Song }) {
     }
     setTimedLyrics(null);
     setCurrentLine(0);
+    setError(null);
   }, [song]);
 
   // Update current highlighted line
@@ -56,17 +49,22 @@ export default function SongCard({ song }: { song: Song }) {
   }, [timedLyrics]);
 
   const handleCopy = async () => {
-    if (!song) return;
-    const lyricsUrl = `/api/synced-lyrics?artist=${encodeURIComponent(song.artist)}&title=${encodeURIComponent(song.title)}`;
-    await navigator.clipboard.writeText(lyricsUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    if (!song?.geniusUrl) return;
+    try {
+      await navigator.clipboard.writeText(song.geniusUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSync = async () => {
     if (!song) return;
 
     setIsLoading(true);
+    setError(null);
+    setTimedLyrics(null);
 
     try {
       const res = await fetch(
@@ -74,29 +72,32 @@ export default function SongCard({ song }: { song: Song }) {
       );
       const data = await res.json();
 
-      if (data.lyrics) {
-        // Parse LRC into [{ time, line }]
-        const parsedLyrics = data.lyrics
-          .split("\n")
-          .map((line: string) => {
-            const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-            if (match) {
-              const minutes = parseInt(match[1]);
-              const seconds = parseFloat(match[2]);
-              return { time: minutes * 60 + seconds, line: match[3].trim() };
-            }
-            return null;
-          })
-          .filter(Boolean) as TimedLyric[];
+      if (data.lyrics && data.lyrics.length > 0) {
+        if (Array.isArray(data.lyrics)) {
+          setTimedLyrics(data.lyrics as TimedLyric[]);
+        } else {
+          const parsedLyrics = (data.lyrics as string)
+            .split("\n")
+            .map((line) => {
+              const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+              if (match) {
+                const minutes = parseInt(match[1]);
+                const seconds = parseFloat(match[2]);
+                return { time: minutes * 60 + seconds, line: match[3].trim() };
+              }
+              return null;
+            })
+            .filter(Boolean);
 
-        setTimedLyrics(parsedLyrics);
+          setTimedLyrics(parsedLyrics as TimedLyric[]);
+        }
         audioRef.current?.play();
       } else {
-        alert("No synced lyrics available for this song.");
+        setError("No synced lyrics available for this song.");
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch synced lyrics.");
+      setError("Failed to fetch synced lyrics. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +125,7 @@ export default function SongCard({ song }: { song: Song }) {
 
       <h3 className={styles.lyricsTitle}>Lyrics</h3>
 
-            {timedLyrics ? (
+      {timedLyrics ? (
         <div className={styles.lyricsContainer}>
           {timedLyrics.map((line, index) => (
             <p key={index} className={index === currentLine ? styles.currentLine : ""}>
@@ -138,24 +139,32 @@ export default function SongCard({ song }: { song: Song }) {
         </div>
       ) : (
         <div className={styles.buttonsRow}>
-          {song.geniusUrl && (
-            <a
-              href={song.geniusUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.lyricsLink}
-            >
-              View on Genius
-            </a>
-          )}
+          <a
+            href={song.geniusUrl || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.geniusBtn}
+            onClick={(e) => {
+              if (!song.geniusUrl) {
+                e.preventDefault();
+                alert("Lyrics URL not available.");
+              }
+            }}
+          >
+            Go to Lyrics
+          </a>
+
           <button onClick={handleCopy} className={styles.copyBtn}>
             {copied ? "Copied ✅" : "Copy Lyrics URL"}
           </button>
+
           <button onClick={handleSync} className={styles.syncBtn}>
             🔄 Sync Lyrics
           </button>
         </div>
       )}
+
+      {error && <p className={styles.errorMsg}>{error}</p>}
     </div>
   );
 }

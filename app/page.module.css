@@ -8,36 +8,10 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
- 
+  transition: background-image 1s ease-in-out;
 }
 
-.background-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.background-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity 1s ease-in-out, transform 20s ease-out;
-}
-
-.background-image.visible {
-  opacity: 1;
-  transform: scale(1.05);
-}
-
-.main::before {
+.main.has-bg::before {
   content: '';
   position: absolute;
   top: 0;
@@ -66,23 +40,6 @@
   backdrop-filter: blur(20px);
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) translateZ(0);
-  }
-}
-
-.main {
-  will-change: transform, opacity; /* Hint GPU to optimize */
-  animation: fadeInUp 0.3s ease-out forwards;
-}
-
-
 .title {
   font-size: 2.5rem;
   font-weight: 800;
@@ -90,4 +47,20 @@
   color: #fff;
   text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
   letter-spacing: 0.5px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.main {
+  will-change: transform, opacity;
+  animation: fadeInUp 0.3s ease-out forwards;
 }

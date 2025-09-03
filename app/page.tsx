@@ -6,12 +6,14 @@ import SearchBar from "./components/SearchBar/SearchBar";
 import SongCard from "./components/SongCard/SongCard";
 import PlaceholderCard from "./components/PlaceholderCard/PlaceholderCard";
 
+// في ملف app/page.tsx
 export interface Song {
   id: string;
   title: string;
   artist: string;
   image?: string;
   previewUrl?: string;
+  geniusUrl?: string; // Add this line
 }
 
 export default function Home() {
@@ -19,8 +21,8 @@ export default function Home() {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [hasBackground, setHasBackground] = useState(false);
   const [popularSongs, setPopularSongs] = useState<Song[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const intervalRef = useRef<number | null>(null);
+  const currentImageIndexRef = useRef<number>(0);
 
   // Fetch popular songs on mount
   useEffect(() => {
@@ -29,7 +31,6 @@ export default function Home() {
         const res = await fetch("/api/popular-songs");
         const data = await res.json();
         if (data.tracks && Array.isArray(data.tracks)) {
-          // Shuffle the array randomly
           const shuffled = data.tracks.sort(() => Math.random() - 0.5);
           setPopularSongs(shuffled);
         }
@@ -42,37 +43,38 @@ export default function Home() {
 
   // Handle background image rotation
   useEffect(() => {
-  // If a song is selected with an image, stop rotation and set its image
-  if (selectedSong?.image) {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setBackgroundImage(selectedSong.image);
-    setHasBackground(true);
-    return;
-  }
+    if (selectedSong?.image) {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setBackgroundImage(selectedSong.image);
+      setHasBackground(true);
+      return;
+    }
 
-  // If there are popular songs, rotate their images
-  if (popularSongs.length > 0) {
-    // Immediately set the first image
-    setBackgroundImage(popularSongs[currentImageIndex]?.image || null);
-    setHasBackground(true);
+    if (popularSongs.length > 0) {
+      setBackgroundImage(popularSongs[currentImageIndexRef.current]?.image || null);
+      setHasBackground(true);
 
-    // Start interval to rotate images
-    intervalRef.current = window.setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % popularSongs.length);
-    }, 5000); // every 5 seconds
-  }
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+      }
+      intervalRef.current = window.setInterval(() => {
+        currentImageIndexRef.current = (currentImageIndexRef.current + 1) % popularSongs.length;
+        setBackgroundImage(popularSongs[currentImageIndexRef.current]?.image || null);
+      }, 5000) as unknown as number;
+    }
 
-  // Cleanup interval on unmount or when dependencies change
-  return () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-}, [selectedSong, popularSongs, currentImageIndex]);
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+      }
+    };
+  }, [selectedSong, popularSongs]);
 
-
-  // Smooth background transition
   const backgroundStyle = {
     backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-    transition: "background-image 1s ease-in-out",
   };
 
   return (

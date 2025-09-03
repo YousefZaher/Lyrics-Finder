@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import findLyrics from "lyrics-finder";
+
+interface TimedLyric {
+  time: number;
+  line: string;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,32 +16,44 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing artist or title" }, { status: 400 });
     }
 
-    // Step 1: Search for the track
-    const searchRes = await fetch(
-      `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`
-    );
-    const searchData = await searchRes.json();
+    // Try to find timed lyrics first
+    const syncedLyrics = await findLyrics(artist, title, true);
 
-    if (searchData.error) {
-      return NextResponse.json({ error: "Track not found" });
+    if (syncedLyrics) {
+      // Parse the LRC string into an array of TimedLyric objects
+      const parsedLyrics: TimedLyric[] = syncedLyrics
+        .split("\n")
+        .map((line: string) => {
+          const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+          if (match) {
+            const minutes = parseInt(match[1]);
+            const seconds = parseFloat(match[2]);
+            return { time: minutes * 60 + seconds, line: match[3].trim() };
+          }
+          return null;
+        })
+        .filter((item): item is TimedLyric => item !== null);
+
+      if (parsedLyrics.length > 0) {
+        return NextResponse.json({ lyrics: parsedLyrics });
+      }
     }
 
-    // Step 2: Fetch synced lyrics
-    const lyricsRes = await fetch(
-      `https://textyl.co/api/lyrics?track=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`
-    );
-    const lyricsData = await lyricsRes.json();
+    // If no synced lyrics are found, fall back to standard lyrics
+    const standardLyrics = await findLyrics(artist, title, false);
 
-    if (!lyricsData.lyrics) {
-      return NextResponse.json({ error: "No synced lyrics available" });
+    if (!standardLyrics) {
+      return NextResponse.json({ error: "No lyrics available" }, { status: 404 });
     }
 
-    // Lyrics in synced format
-    const syncedLyrics = lyricsData.lyrics;
+    const formattedStandardLyrics: TimedLyric[] = standardLyrics
+      .split('\n')
+      .map((line: string) => ({ time: 0, line }));
 
-    return NextResponse.json({ lyrics: syncedLyrics });
+    return NextResponse.json({ lyrics: formattedStandardLyrics });
+
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to fetch synced lyrics" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch lyrics" }, { status: 500 });
   }
 }
