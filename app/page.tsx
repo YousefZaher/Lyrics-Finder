@@ -1,124 +1,82 @@
 "use client";
 
 import styles from './page.module.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SearchBar from "./components/SearchBar/SearchBar";
 import SongCard from "./components/SongCard/SongCard";
 import PlaceholderCard from "./components/PlaceholderCard/PlaceholderCard";
-import Image from 'next/image';
 
 interface Song {
+  id: string;
   title: string;
   artist: string;
-  image: string;
+  image?: string;
+  previewUrl?: string;
 }
 
 export default function Home() {
-<<<<<<< Updated upstream
-  const [selectedSong, setSelectedSong] = useState<any>(null);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [hasBackground, setHasBackground] = useState(false);
   const [popularSongs, setPopularSongs] = useState<Song[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const intervalRef = useRef<number | null>(null);
 
-    useEffect(() => {
-=======
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [popularSongs, setPopularSongs] = useState<Song[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // Fetch popular songs on initial load
+  // Fetch popular songs on mount
   useEffect(() => {
->>>>>>> Stashed changes
     const fetchPopularSongs = async () => {
       try {
         const res = await fetch("/api/popular-songs");
         const data = await res.json();
-<<<<<<< Updated upstream
-        if (data.tracks) {
-=======
-        // Assuming the new route returns an array of songs
-        if (Array.isArray(data.tracks)) {
->>>>>>> Stashed changes
-          setPopularSongs(data.tracks);
+        if (data.tracks && Array.isArray(data.tracks)) {
+          // Shuffle the array randomly
+          const shuffled = data.tracks.sort(() => Math.random() - 0.5);
+          setPopularSongs(shuffled);
         }
       } catch (error) {
         console.error("Failed to fetch popular songs:", error);
       }
     };
     fetchPopularSongs();
-<<<<<<< Updated upstream
-  }, []); 
-    useEffect(() => {
-        if (selectedSong && selectedSong.image) {
-      setBackgroundImage(selectedSong.image);
-      setHasBackground(true);
-=======
   }, []);
 
-  // Handle the background image loop
+  // Handle background image rotation
   useEffect(() => {
-    // Stop the loop if a song is selected or if there are no popular songs
-    if (selectedSong || popularSongs.length === 0) {
->>>>>>> Stashed changes
-      return;
-    }
-    
-    // Set an interval to change the background image index every 5 seconds
-    const intervalId = setInterval(() => {
-      setCurrentImageIndex(prevIndex => (prevIndex + 1) % popularSongs.length);
-    }, 5000); // 5 seconds
+  // If a song is selected with an image, stop rotation and set its image
+  if (selectedSong?.image) {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setBackgroundImage(selectedSong.image);
+    setHasBackground(true);
+    return;
+  }
 
-<<<<<<< Updated upstream
-        if (popularSongs.length > 0) {
-      setBackgroundImage(popularSongs[currentImageIndex].image);
-      setHasBackground(true);
+  // If there are popular songs, rotate their images
+  if (popularSongs.length > 0) {
+    // Immediately set the first image
+    setBackgroundImage(popularSongs[currentImageIndex]?.image || null);
+    setHasBackground(true);
 
-      const intervalId = setInterval(() => {
-        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % popularSongs.length);
-      }, 5000); 
-            return () => clearInterval(intervalId);
-    }
-  }, [selectedSong, popularSongs, currentImageIndex]);
-=======
-    return () => clearInterval(intervalId);
-  }, [selectedSong, popularSongs]);
+    // Start interval to rotate images
+    intervalRef.current = window.setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % popularSongs.length);
+    }, 5000); // every 5 seconds
+  }
 
-  // Determine the two background images to display for the crossfade
-  const primaryImage = selectedSong?.image || popularSongs[currentImageIndex]?.image;
-  const secondaryImage = popularSongs[(currentImageIndex + 1) % popularSongs.length]?.image;
-  const hasBackground = !!selectedSong || popularSongs.length > 0;
->>>>>>> Stashed changes
+  // Cleanup interval on unmount or when dependencies change
+  return () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  };
+}, [selectedSong, popularSongs, currentImageIndex]);
+
+
+  // Smooth background transition
+  const backgroundStyle = {
+    backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
+    transition: "background-image 1s ease-in-out",
+  };
 
   return (
-    <div className={`${styles.main} ${hasBackground ? styles['has-bg'] : ''}`}>
-      {/* Background container for crossfading images */}
-      <div className={styles['background-container']}>
-        {primaryImage && (
-          <Image
-            src={primaryImage}
-            alt="Background"
-            layout="fill"
-            objectFit="cover"
-            priority
-            quality={100}
-            className={`${styles['background-image']} ${styles.visible}`}
-          />
-        )}
-        {/* Render a second image for the crossfade effect */}
-        {secondaryImage && !selectedSong && (
-          <Image
-            src={secondaryImage}
-            alt="Background"
-            layout="fill"
-            objectFit="cover"
-            priority
-            quality={100}
-            className={`${styles['background-image']} ${styles.hidden}`}
-          />
-        )}
-      </div>
-
+    <div className={`${styles.main} ${hasBackground ? styles['has-bg'] : ''}`} style={backgroundStyle}>
       <div className={styles.overlay}>
         <h1 className={styles.title}>Lyrics Finder 🎵</h1>
         <SearchBar onSelect={setSelectedSong} />

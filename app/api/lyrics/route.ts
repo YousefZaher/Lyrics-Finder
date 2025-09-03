@@ -9,16 +9,29 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing artist or title" }, { status: 400 });
   }
 
-  try {
-    const res = await fetch(`https://api.lyrics.ovh/v1/${artist}/${title}`);
-    const data = await res.json();
+  const token = process.env.GENIUS_ACCESS_TOKEN;
+  if (!token) {
+    return NextResponse.json({ error: "Genius Access Token not set" }, { status: 500 });
+  }
 
-    if (data.error) {
+  try {
+    // Search for the song on Genius
+    const res = await fetch(
+      `https://api.genius.com/search?q=${encodeURIComponent(artist)}+${encodeURIComponent(title)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const data = await res.json();
+    if (!data.response.hits.length) {
       return NextResponse.json({ error: "Lyrics not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ lyrics: data.lyrics });
-  } catch {
+    const songUrl = data.response.hits[0].result.url;
+
+    // ✅ Just return the Genius URL instead of scraping lyrics
+    return NextResponse.json({ url: songUrl });
+  } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: "Lyrics API error" }, { status: 500 });
   }
 }
