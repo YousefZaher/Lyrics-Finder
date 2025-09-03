@@ -9,7 +9,17 @@ interface TimedLyric {
   line: string;
 }
 
-export default function SongCard({ song }: { song: any }) {
+interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  image?: string;
+  previewUrl?: string;
+  geniusUrl?: string;
+}
+
+
+export default function SongCard({ song }: { song: Song }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [timedLyrics, setTimedLyrics] = useState<TimedLyric[] | null>(null);

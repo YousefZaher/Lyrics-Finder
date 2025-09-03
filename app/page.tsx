@@ -6,7 +6,7 @@ import SearchBar from "./components/SearchBar/SearchBar";
 import SongCard from "./components/SongCard/SongCard";
 import PlaceholderCard from "./components/PlaceholderCard/PlaceholderCard";
 
-interface Song {
+export interface Song {
   id: string;
   title: string;
   artist: string;

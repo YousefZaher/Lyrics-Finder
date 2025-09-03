@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { SpotifyApi } from "spotify-api"
 
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search";
@@ -40,7 +41,7 @@ export async function GET(req: Request) {
     const data = await res.json();
 
     const results = await Promise.all(
-      data.tracks.items.map(async (track: any) => {
+      data.tracks.items.map(async (track: SpotifyApi.TrackObjectFull) => {
         let previewUrl = track.preview_url;
         let image = track.album.images[0]?.url;
 
@@ -63,7 +64,7 @@ export async function GET(req: Request) {
         return {
           id: track.id,
           title: track.name,
-          artist: track.artists.map((a: any) => a.name).join(", "),
+          artist: track.artists.map((a: SpotifyApi.ArtistObjectSimplified) => a.name).join(", "),
           album: track.album.name,
           previewUrl,
           image,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SpotifyApi } from "spotify-api";
 
 export async function GET() {
   const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
@@ -40,7 +41,7 @@ export async function GET() {
     );
 
     const popularData = await popularResponse.json();
-    const tracks = popularData.playlists.items.map((playlist: any) => ({
+    const tracks = popularData.playlists.items.map((playlist: SpotifyApi.PlaylistObjectSimplified) => ({
       id: playlist.id,
       title: playlist.name,
       artist: "Various Artists", // Playlists have multiple artists, so this is a reasonable placeholder
