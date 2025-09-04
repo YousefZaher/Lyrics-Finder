@@ -1,3 +1,4 @@
+/* ...existing code... */
 .card {
   max-width: 700px;
   margin: 20px auto;
@@ -159,4 +160,120 @@
   color: #ef4444;
   margin-top: 12px;
   font-weight: 600;
+}
+
+/* Responsive adjustments */
+
+/* Large tablets / small desktops */
+@media (max-width: 900px) {
+  .card {
+    padding: 22px;
+    max-width: 92%;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .image {
+    width: 10rem;
+  }
+
+  .lyricsContainer {
+    max-height: 260px;
+    font-size: 0.98rem;
+  }
+}
+
+/* Tablets / large phones */
+@media (max-width: 600px) {
+  .card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .mediaRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .image {
+    width: 100%;
+    height: auto;
+    margin-right: 0;
+    margin-bottom: 6px;
+    object-fit: cover;
+  }
+
+  .audio {
+    width: 100%;
+  }
+
+  .buttonsRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .geniusBtn,
+  .copyBtn,
+  .syncBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 14px;
+  }
+
+  .title {
+    font-size: 1.45rem;
+  }
+
+  .artist {
+    font-size: 1rem;
+  }
+
+  .lyricsContainer {
+    max-height: 220px;
+    font-size: 0.98rem;
+  }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+  .card {
+    padding: 14px;
+    border-radius: 14px;
+    margin: 12px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+    line-height: 1.15;
+  }
+
+  .artist {
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .lyricsTitle {
+    font-size: 1.05rem;
+    gap: 8px;
+  }
+
+  .lyricsContainer {
+    padding: 12px;
+    max-height: 180px;
+    font-size: 0.95rem;
+  }
+
+  .geniusBtn,
+  .copyBtn,
+  .syncBtn {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .image {
+    border-radius: 10px;
+  }
 }

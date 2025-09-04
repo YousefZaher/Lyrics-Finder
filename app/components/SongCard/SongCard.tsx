@@ -151,7 +151,7 @@ export default function SongCard({ song }: { song: Song }) {
               }
             }}
           >
-            Go to Lyrics
+          Genius
           </a>
 
           <button onClick={handleCopy} className={styles.copyBtn}>
@@ -159,7 +159,7 @@ export default function SongCard({ song }: { song: Song }) {
           </button>
 
           <button onClick={handleSync} className={styles.syncBtn}>
-            🔄 Sync Lyrics
+             Sync Lyrics
           </button>
         </div>
       )}
